@@ -12,8 +12,8 @@
 * [Quick-Start Guide](#guide)
   * [Defining Effects](#defining-effects)
   * [Using Effects](#using-effects)
-  * [Defining Handlers](#defining-handlers)
-  * [Using Handlers](#using-handlers)
+  * [Defining Effect Handlers](#defining-handlers)
+  * [Using Effect Handlers](#using-handlers)
   * [Tagging, Retagging, Untagging](#tagging)
 * [Limitations and Remarks](#limitations)
 
