@@ -554,13 +554,15 @@ higherFunction monad params sig = do
 unkindType :: Type -> Type
 unkindType typ =
   case typ of
-    ForallT vs ps t -> ForallT (fmap unkindTyVar vs) (fmap unkindType ps) (unkindType t)
-    AppT l r        -> AppT (unkindType l) (unkindType r)
-    SigT t _        -> t
-    InfixT l n r    -> InfixT (unkindType l) n (unkindType r)
-    UInfixT l n r   -> UInfixT (unkindType l) n (unkindType r)
-    ParensT t       -> ParensT (unkindType t)
-    other           -> other
+    -- We could need the following line if we want to preserve foralls
+    --ForallT vs ps t -> ForallT (fmap unkindTyVar vs) (fmap unkindType ps) (unkindType t)
+    ForallT _ _ t -> unkindType t
+    AppT l r      -> AppT (unkindType l) (unkindType r)
+    SigT t _      -> t
+    InfixT l n r  -> InfixT (unkindType l) n (unkindType r)
+    UInfixT l n r -> UInfixT (unkindType l) n (unkindType r)
+    ParensT t     -> ParensT (unkindType t)
+    other         -> other
 
 contains :: Name -> Type -> Bool
 contains m typ =
