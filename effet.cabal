@@ -1,0 +1,68 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 5e1b55b6a5d186ec023537858ae4098ce19caa92be7cc2d07e60ea0630e75011
+
+name:           effet
+version:        0.1.0.0
+synopsis:       An Effect System based on Type Classes
+description:    Please see the README on GitHub at <https://github.com/typedbyte/effet#readme>
+category:       Control
+homepage:       https://github.com/typedbyte/effet#readme
+bug-reports:    https://github.com/typedbyte/effet/issues
+author:         Michael Szvetits
+maintainer:     typedbyte@qualified.name
+copyright:      2020 Michael Szvetits
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/typedbyte/effet
+
+library
+  exposed-modules:
+      Control.Effect.Cont
+      Control.Effect.Embed
+      Control.Effect.Error
+      Control.Effect.Machinery
+      Control.Effect.Machinery.Default
+      Control.Effect.Machinery.Kind
+      Control.Effect.Machinery.Tagger
+      Control.Effect.Machinery.TH
+      Control.Effect.Machinery.Via
+      Control.Effect.Map
+      Control.Effect.Map.Lazy
+      Control.Effect.Map.Strict
+      Control.Effect.Reader
+      Control.Effect.Resource
+      Control.Effect.RWS
+      Control.Effect.RWS.Lazy
+      Control.Effect.RWS.Strict
+      Control.Effect.State
+      Control.Effect.State.Lazy
+      Control.Effect.State.Strict
+      Control.Effect.Writer
+      Control.Effect.Writer.Lazy
+      Control.Effect.Writer.Strict
+  other-modules:
+      Paths_effet
+  hs-source-dirs:
+      src
+  default-extensions: AllowAmbiguousTypes ConstraintKinds DataKinds DerivingVia FlexibleContexts FlexibleInstances FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses PolyKinds RankNTypes ScopedTypeVariables TypeApplications TypeFamilies TypeOperators UndecidableInstances
+  ghc-options: -Wall
+  build-depends:
+      base >=4.7 && <5
+    , containers >=0.6.2.1 && <0.7
+    , monad-control >=1.0.2.3 && <1.1
+    , template-haskell >=2.15.0.0 && <2.16
+    , transformers >=0.5.6.2 && <0.6
+    , transformers-base >=0.4.5.2 && <0.5
+  default-language: Haskell2010

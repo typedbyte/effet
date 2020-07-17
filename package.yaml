@@ -1,0 +1,46 @@
+name:        effet
+version:     0.1.0.0
+github:      "typedbyte/effet"
+license:     BSD3
+author:      "Michael Szvetits"
+maintainer:  "typedbyte@qualified.name"
+copyright:   "2020 Michael Szvetits"
+synopsis:    An Effect System based on Type Classes
+category:    Control
+description: Please see the README on GitHub at <https://github.com/typedbyte/effet#readme>
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+dependencies:
+- base              >= 4.7      && < 5
+- containers        >= 0.6.2.1  && < 0.7
+- monad-control     >= 1.0.2.3  && < 1.1
+- template-haskell  >= 2.15.0.0 && < 2.16
+- transformers      >= 0.5.6.2  && < 0.6
+- transformers-base >= 0.4.5.2  && < 0.5
+
+library:
+  source-dirs: src
+
+default-extensions:
+- AllowAmbiguousTypes
+- ConstraintKinds
+- DataKinds
+- DerivingVia
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GeneralizedNewtypeDeriving
+- KindSignatures
+- MultiParamTypeClasses
+- PolyKinds
+- RankNTypes
+- ScopedTypeVariables
+- TypeApplications
+- TypeFamilies
+- TypeOperators
+- UndecidableInstances
+
+ghc-options: -Wall
