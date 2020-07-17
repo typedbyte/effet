@@ -8,17 +8,25 @@
 
 [plucking constraints]: https://www.parsonsmatt.org/2020/01/03/plucking_constraints.html
 
-* [Overview](#overview)
-* [Quick-Start Guide](#guide)
-  * [Defining Effects](#defining-effects)
-  * [Using Effects](#using-effects)
-  * [Defining Effect Handlers](#defining-handlers)
-  * [Using Effect Handlers](#using-handlers)
-  * [Tagging, Retagging, Untagging](#tagging)
-* [Limitations and Remarks](#limitations)
+[Overview]: https://github.com/typedbyte/effet#overview
+[Quick-Start Guide]: https://github.com/typedbyte/effet#quick-start-guide
+[Defining Effects]: https://github.com/typedbyte/effet#defining-effects
+[Using Effects]: https://github.com/typedbyte/effet#using-effects
+[Defining Effect Handlers]: https://github.com/typedbyte/effet#defining-effect-handlers
+[Using Effect Handlers]: https://github.com/typedbyte/effet#using-effect-handlers
+[Tagging, Retagging, Untagging]: https://github.com/typedbyte/effet#tagging-retagging-untagging
+[Limitations and Remarks]: https://github.com/typedbyte/effet#limitations-and-remarks
 
+* [Overview][]
+* [Quick-Start Guide][]
+  * [Defining Effects][]
+  * [Using Effects][]
+  * [Defining Effect Handlers][]
+  * [Using Effect Handlers][]
+  * [Tagging, Retagging, Untagging][]
+* [Limitations and Remarks][]
 
-## <a name="overview">Overview</a>
+## Overview
 
 `effet` is an effect system based on type classes, written in Haskell. A central idea of an effect system is to track effects (like performing a file system access) on the type level in order to describe the behavior of functions more precisely. Another central idea of an effect system is the well-known design principle of separating an interface (the *effect*) from its actual implementation (the *effect handler* or *effect interpreter*). Hence, `effet` allows developers to write programs by composing functions which describe their effects on the type level, and to provide different implementation strategies for those effects when running the programs.
 
@@ -31,9 +39,9 @@
 
 `effet` has a rather down-to-earth implementation without much magic. It is like a thin wrapper around the `transformers` library and its lifting friends `transformers-base` and `monad-control`, thus minimizing the reinvention of the wheel. The library and its documentation can be found on [Hackage](https://hackage.haskell.org/package/effet).
 
-## <a name="guide">Quick-Start Guide</a>
+## Quick-Start Guide
 
-### <a name="defining-effects">Defining Effects</a>
+### Defining Effects
 
 When defining effects or effect handlers, the module *Control.Effect.Machinery* provides everything we need:
 
@@ -68,7 +76,7 @@ This line generates the necessary infrastructure for combining our new effect wi
 
 `effet` also provides the function `makeTaggedEffectWith` to define our own naming convention if we don't like the apostrophes. For untagged effects, we would have simply used the function `makeEffect` instead.
 
-### <a name="using-effects">Using Effects</a>
+### Using Effects
 
 We can now use our effect to write programs that access the file system. We will define a simple program which appends something to a file. In order to make it more interesting, we will combine it with the pre-defined `Writer` effect to report the file size before and after appending, just to demonstrate the interplay with other effects:
 
@@ -88,7 +96,7 @@ program path txt = do
 
 In order to run this program, we need a handler (or "interpreter") for our effect. There are several ways to interpret our effect. We could, for example, really access our local file system or just provide a virtual, in-memory file system. Hence, we will define two effect handlers for demonstration purposes.
 
-### <a name="defining-handlers">Defining Effect Handlers</a>
+### Defining Effect Handlers
 
 First of all, we could &ndash; in theory &ndash; interpret effects without using `effet` at all, which is something that is not possible in many other effect systems. Since effects are ordinary type classes, we would just instantiate the monad type `m` with a type that provides instances for all (!) the effect type classes that constrain `m`. This is where the so-called "n² instances problem" of `mtl` comes from, since every effect handler that wants to handle a single effect (i.e., that wants to provide a type class instance for the effect it wants to handle) must also provide type class instances for all other effects &ndash; some of which might not even be known at compile-time &ndash; in order to delegate them to their corresponding effect handlers.
 
@@ -150,7 +158,7 @@ runVirtualFileSystem = runVirtualFileSystem' @G
 
 As we can see above, there is some boilerplate involved when defining effect handlers, like the two `run`-functions which look almost identically. There is certainly potential to generate more code to mitigate this in the future.
 
-### <a name="using-handlers">Using Effect Handlers</a>
+### Using Effect Handlers
 
 Now we have all our puzzle pieces together in order to run our program with different effect handlers. Let's recap the type of our program:
 
@@ -193,7 +201,7 @@ As we can see by the types, no `IO` is involved in the virtual program, since we
 
 We decided to handle our `Map` and `Writer` effects using their lazy implementations. We could, for example, easily switch the handlers to their strict counterparts, or even use some other Map-like implementation for our `Map` effect, like Redis.
 
-### <a name="tagging">Tagging, Retagging, Untagging</a>
+### Tagging, Retagging, Untagging
 
 If we write a program with multiple `FileSystem'` effects, we can disambiguate them using the tags ...
 
@@ -272,7 +280,7 @@ ourProgram = functionA >> tagFileSystem' @"b" functionB
 
 ... which again allows us to interpret the effects independently as described above.
 
-## <a name="limitations">Limitations and Remarks</a>
+## Limitations and Remarks
 
 * A handler can handle exactly one effect. This restriction might be lifted in the future.
 * `TemplateHaskell`-based code generation can yield code that does not compile if you go crazy with `m`-based parameters in higher-order effect methods (where `m` is the monad type parameter of the effect type class). In such cases, one has to write the necessary type class instances by hand.
