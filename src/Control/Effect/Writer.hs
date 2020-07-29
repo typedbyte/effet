@@ -50,10 +50,12 @@ module Control.Effect.Writer
 import Data.Tuple (swap)
 
 -- transformers
+import qualified Control.Monad.Trans.RWS.CPS     as Strict
+import qualified Control.Monad.Trans.RWS.Lazy    as Lazy
 import qualified Control.Monad.Trans.Writer.Lazy as L
 import qualified Control.Monad.Trans.Writer.CPS  as S
 
-import Control.Effect.Machinery (G, Tagger(Tagger), makeTaggedEffect)
+import Control.Effect.Machinery
 
 -- | An effect that adds a write-only, accumulated output to a given computation.
 class Monad m => Writer' tag w m | tag m -> w where
@@ -82,6 +84,22 @@ instance (Monad m, Monoid w) => Writer' tag w (S.WriterT w m) where
   listen' = fmap swap . S.listen
   {-# INLINE listen' #-}
   censor' = S.censor
+  {-# INLINE censor' #-}
+
+instance (Monad m, Monoid w) => Writer' tag w (Lazy.RWST r w s m) where
+  tell' = Lazy.tell
+  {-# INLINE tell' #-}
+  listen' = fmap swap . Lazy.listen
+  {-# INLINE listen' #-}
+  censor' = Lazy.censor
+  {-# INLINE censor' #-}
+
+instance (Monad m, Monoid w) => Writer' tag w (Strict.RWST r w s m) where
+  tell' = Strict.tell
+  {-# INLINE tell' #-}
+  listen' = fmap swap . Strict.listen
+  {-# INLINE listen' #-}
+  censor' = Strict.censor
   {-# INLINE censor' #-}
 
 -- | Executes a sub-computation and applies the function to its output, thus adding

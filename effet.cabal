@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5e1b55b6a5d186ec023537858ae4098ce19caa92be7cc2d07e60ea0630e75011
+-- hash: 397bba600623b58701020a4ec01a2dff5e707d155f8f98e84f63423537604919
 
 name:           effet
-version:        0.1.0.0
+version:        0.2.0.0
 synopsis:       An Effect System based on Type Classes
 description:    Please see the README on GitHub at <https://github.com/typedbyte/effet#readme>
 category:       Control
@@ -34,7 +34,6 @@ library
       Control.Effect.Error
       Control.Effect.Machinery
       Control.Effect.Machinery.Default
-      Control.Effect.Machinery.Kind
       Control.Effect.Machinery.Tagger
       Control.Effect.Machinery.TH
       Control.Effect.Machinery.Via

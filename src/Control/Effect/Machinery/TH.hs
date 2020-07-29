@@ -15,18 +15,23 @@ module Control.Effect.Machinery.TH
   ( -- * Common Generators
     makeEffect
   , makeHandler
+  , makeFinder
   , makeLifter
     -- * Tag-based Generators
   , makeTaggedEffect
   , makeTaggedEffectWith
   , makeTagger
   , makeTaggerWith
+    -- * Lifting Convenience
+  , liftL
+  , runL
     -- * Naming Convention
   , removeApostrophe
   ) where
 
 -- base
 import Control.Monad (forM, replicateM)
+import Data.Coerce   (coerce)
 import Data.List     (isSuffixOf)
 import Data.Maybe    (maybeToList)
 
@@ -40,9 +45,9 @@ import Language.Haskell.TH.Syntax hiding (Lift, lift)
 -- transformers
 import Control.Monad.Trans.Class (lift)
 
-import Control.Effect.Machinery.Kind   (Control, Handle, Lift)
 import Control.Effect.Machinery.Tagger (Tagger, runTagger)
-import Control.Effect.Machinery.Via    (G, Via(Via), runVia)
+import Control.Effect.Machinery.Via    (Control, EachVia, Find, G, Handle, Lift,
+                                        Via, runVia)
 
 data ClassInfo = ClassInfo
   { clsCxt     :: Cxt
@@ -212,6 +217,16 @@ classInfo className = do
         ++ "' is not a type class, but the following instead: "
         ++ show other
 
+instanceFinderCxt :: Name -> Name -> EffectInfo -> Q Cxt
+instanceFinderCxt name effs info = cxt
+  [
+    conT name
+      `appT` effType info
+      `appT` varT effs
+      `appT` varT (effTrafoName info)
+      `appT` tyVarType (effMonad info)
+  ]
+
 instanceCxt :: Name -> EffectInfo -> Q Cxt
 instanceCxt name info = cxt
   [
@@ -222,11 +237,11 @@ instanceCxt name info = cxt
   ]
 
 instanceHead :: Q Type -> EffectInfo -> Q Type
-instanceHead eff info =
+instanceHead effs info =
   effType info
     `appT` (
-      conT ''Via
-        `appT` eff
+      conT ''EachVia
+        `appT` effs
         `appT` varT (effTrafoName info)
         `appT` tyVarType (effMonad info)
       )
@@ -242,26 +257,42 @@ instanceHead eff info =
 --       ...
 -- @
 --
--- @makeEffect ''MyEffect@ then generates two instances for this effect type
+-- @makeEffect ''MyEffect@ then generates three instances for this effect type
 -- class ('Lift' for first-order effects, 'Control' for higher-order effects):
 --
 -- @
---     instance 'Handle' (MyEffect a b c) t m => MyEffect a b c ('Via' (MyEffect a b c) t m) where
+--     instance 'Handle' (MyEffect a b c) t m => MyEffect a b c ('EachVia' (MyEffect a b c : effs) t m) where
 --       ...
 --
---     instance {-\# OVERLAPPABLE \#-} 'Lift'/'Control' (MyEffect a b c) t m => MyEffect a b c ('Via' eff t m) where
+--     instance {-\# OVERLAPPABLE \#-} 'Find' (MyEffect a b c) effs t m => MyEffect a b c ('EachVia' (other : effs) t m) where
+--       ...
+--
+--     instance 'Lift'/'Control' (MyEffect a b c) t m => MyEffect a b c ('EachVia' \'[] t m) where
 --       ...
 -- @
 --
--- Without @TemplateHaskell@, you have to write these instances by hand. These
--- two instances can also be generated separately, see 'makeHandler' and 'makeLifter'.
+-- The first instance indicates that @MyEffect@ was found at the head of the type
+-- level list of effects to be handled, so @MyEffect@ is delegated to @t@.
+--
+-- The second instance indicates that @MyEffect@ was not found at the head of the
+-- type level list of effects to be handled, so we must find @MyEffect@ in the tail @effs@
+-- of the type level list.
+--
+-- The third instance indicates that @MyEffect@ could not be found in the type level
+-- list of effects to be handled, so the effect must be delegated further down the monad
+-- transformer stack in order to find its corresponding effect handler.
+--
+-- Without @TemplateHaskell@, you have to write these three instances by hand. These
+-- instances can also be generated separately, see 'makeHandler', 'makeFinder' and
+-- 'makeLifter'.
 makeEffect :: Name -> Q [Dec]
 makeEffect className = do
   clsInfo   <- classInfo className
   effInfo   <- effectInfo clsInfo
   hInstance <- handler effInfo
+  fInstance <- finder effInfo
   lInstance <- lifter effInfo
-  pure [hInstance, lInstance]
+  pure [hInstance, fInstance, lInstance]
 
 -- | Similar to 'makeTaggedEffect', but only generates the tag-related definitions.
 makeTagger :: Name -> Q [Dec]
@@ -332,9 +363,10 @@ makeTaggedEffectWith f className = do
   effInfo    <- effectInfo clsInfo
   tagInfo    <- taggedInfo f effInfo
   hInstance  <- handler effInfo
+  fInstance  <- finder effInfo
   lInstance  <- lifter effInfo
   taggerDecs <- tagger tagInfo
-  pure (hInstance : lInstance : taggerDecs)
+  pure (hInstance : fInstance : lInstance : taggerDecs)
 
 -- | Similar to 'makeEffect', but only generates the effect type class instance
 -- for handling an effect.
@@ -344,6 +376,17 @@ makeHandler className = do
   effInfo   <- effectInfo clsInfo
   hInstance <- handler effInfo
   pure [hInstance]
+
+-- | Similar to 'makeEffect', but only generates the effect type class instance
+-- for finding the effect in the tail of the type level list.
+--
+-- @since 0.2.0.0
+makeFinder :: Name -> Q [Dec]
+makeFinder className = do
+  clsInfo   <- classInfo className
+  effInfo   <- effectInfo clsInfo
+  fInstance <- finder effInfo
+  pure [fInstance]
 
 -- | Similar to 'makeEffect', but only generates the effect type class instance
 -- for lifting an effect.
@@ -369,9 +412,21 @@ tagger info = do
 handler :: EffectInfo -> Q Dec
 handler info = do
   funs <- handlerFunctions info
+  effs <- newName "effs"
   instanceD
     ( instanceCxt ''Handle info )
-    ( instanceHead (effType info) info )
+    ( instanceHead (promotedConsT `appT` effType info `appT` varT effs) info )
+    ( fmap pure funs )
+
+finder :: EffectInfo -> Q Dec
+finder info = do
+  funs  <- finderFunctions info
+  other <- newName "other"
+  effs  <- newName "effs"
+  instanceWithOverlapD
+    ( Just Overlappable )
+    ( instanceFinderCxt ''Find effs info )
+    ( instanceHead (promotedConsT `appT` varT other `appT` varT effs) info )
     ( fmap pure funs )
 
 lifter :: EffectInfo -> Q Dec
@@ -383,11 +438,9 @@ lifter info = do
       then ''Control
       else ''Lift
   funs <- lifterFunctions info
-  eff  <- newName "eff"
-  instanceWithOverlapD
-    ( Just Overlappable )
+  instanceD
     ( instanceCxt context info )
-    ( instanceHead (varT eff) info )
+    ( instanceHead promotedNilT info )
     ( fmap pure funs )
 
 taggerFunctions :: TaggedInfo -> Q [Dec]
@@ -505,7 +558,34 @@ handlerFunctions :: EffectInfo -> Q [Dec]
 handlerFunctions info =
   fmap concat $
     mapM
-      ( function [| Via |] [| runVia |] (effMonad info) (effParams info) )
+      ( function [| EachVia |] [| runVia |] (effMonad info) (effParams info) )
+      ( effSigs info )
+
+-- | Adds an effect @eff@ to the type level list of effects that need to be
+-- handled by the transformer @t@. From a structural point of view, this is
+-- analogous to @lift@ in the @mtl@ ecosystem. This function comes in handy
+-- when writing the 'Find'-based instance of an effect by hand.
+--
+-- @since 0.2.0.0
+liftL :: EachVia effs t m a -> EachVia (eff : effs) t m a
+liftL = coerce
+{-# INLINE liftL #-}
+
+-- | Removes an effect @eff@ from the type level list of effects that need to be
+-- handled by the transformer @t@. From a structural point of view, this is
+-- analogous to the @run...@ functions in the @mtl@ ecosystem. This function
+-- comes in handy when writing the 'Find'-based instance of an effect by hand.
+--
+-- @since 0.2.0.0
+runL :: EachVia (eff : effs) t m a -> EachVia effs t m a
+runL = coerce
+{-# INLINE runL #-}
+
+finderFunctions :: EffectInfo -> Q [Dec]
+finderFunctions info =
+  fmap concat $
+    mapM
+      ( function [| liftL |] [| runL |] (effMonad info) (effParams info) )
       ( effSigs info )
 
 lifterFunctions :: EffectInfo -> Q [Dec]
@@ -543,7 +623,7 @@ higherFunction monad params sig = do
   let typeAppliedName = foldl appTypeE (varE funName) paramTypes
       appliedExp = foldl appE expr (typeAppliedName : fmap varE fParams)
       body =
-        [| Via $
+        [| EachVia $
             (liftWith $ \ $([p|run|]) -> $appliedExp)
               >>= $(traverseExp res) (restoreT . pure)
         |]
@@ -590,7 +670,7 @@ derive rs f inv m typ =
       let rf = derive rs f inv m res
           af = derive rs inv f m arg
       in if elem arg rs
-         then [| \x b -> $rf (((x =<<) . Via . restoreT . pure) b) |]
+         then [| \x b -> $rf (((x =<<) . EachVia . restoreT . pure) b) |]
          else [| \x b -> $rf (x ($af b)) |]
     ForallT _ _ t ->
       derive rs f inv m t

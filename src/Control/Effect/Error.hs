@@ -51,7 +51,7 @@ import Data.Coerce (coerce)
 -- transformers
 import Control.Monad.Trans.Except (ExceptT(ExceptT), catchE, throwE)
 
-import Control.Effect.Machinery (G, Tagger(Tagger), Via(Via), makeTaggedEffect)
+import Control.Effect.Machinery
 
 -- | An effect that equips a computation with the ability to throw and catch
 -- exceptions.

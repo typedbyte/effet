@@ -282,12 +282,7 @@ ourProgram = functionA >> tagFileSystem' @"b" functionB
 
 ## Limitations and Remarks
 
-* A handler can handle exactly one effect. This restriction might be lifted in the future.
-* `TemplateHaskell`-based code generation can yield code that does not compile if you go crazy with `m`-based parameters in higher-order effect methods (where `m` is the monad type parameter of the effect type class). In such cases, one has to write the necessary type class instances by hand.
-* It is not possible to define an effect type class based on other effect type classes, like `mtl` does with `RWS` (not to be confused with writing an effect *handler* based on other effects, which is possible). This restriction might be lifted in the future if a handler can handle multiple effects (see the first point). In other words, effect definitions like the following are currently not possible, at least not in combination with the provided code generation infrastructure:
-  ```haskell
-  class (Reader r m, Writer w m, State s m) => RWS r w s m where
-    ...
-  ```
+* `TemplateHaskell`-based code generation can yield code that does not compile if you go crazy with `m`-based parameters in higher-order effect methods (where `m` is the monad type parameter of the effect type class). In such cases, one has to write the necessary type class instances by hand. They are explained in the documentation of the module `Control.Effect.Machinery.TH`.
+* Effect type classes that are based on other effect type classes (like `RWS`) are possible, but cannot be used with the provided code generation infrastructure yet (not to be confused with writing an effect *handler* based on other effects, which is possible).
 * The performance should be `mtl`-like, but this has not been verified yet.
 * The library needs some tests.

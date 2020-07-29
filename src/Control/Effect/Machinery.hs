@@ -14,7 +14,6 @@
 module Control.Effect.Machinery
   ( -- * Re-exports from @effet@
     module Control.Effect.Machinery.Default
-  , module Control.Effect.Machinery.Kind
   , module Control.Effect.Machinery.Tagger
   , module Control.Effect.Machinery.TH
   , module Control.Effect.Machinery.Via
@@ -41,7 +40,6 @@ import Control.Monad.Trans.Class
 import Control.Monad.Base
 
 import Control.Effect.Machinery.Default
-import Control.Effect.Machinery.Kind
 import Control.Effect.Machinery.Tagger
 import Control.Effect.Machinery.TH
 import Control.Effect.Machinery.Via

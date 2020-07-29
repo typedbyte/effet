@@ -54,10 +54,12 @@ module Control.Effect.State
 import Data.Tuple (swap)
 
 -- transformers
+import qualified Control.Monad.Trans.RWS.CPS      as Strict
+import qualified Control.Monad.Trans.RWS.Lazy     as Lazy
 import qualified Control.Monad.Trans.State.Lazy   as L
 import qualified Control.Monad.Trans.State.Strict as S
 
-import Control.Effect.Machinery (G, Tagger(Tagger), makeTaggedEffect)
+import Control.Effect.Machinery
 
 -- | An effect that adds a mutable state to a given computation.
 class Monad m => State' tag s m | tag m -> s where
@@ -98,6 +100,22 @@ instance Monad m => State' tag s (S.StateT s m) where
   put' = S.put
   {-# INLINE put' #-}
   state' = S.state . fmap swap
+  {-# INLINE state' #-}
+
+instance (Monad m, Monoid w) => State' tag s (Lazy.RWST r w s m) where
+  get' = Lazy.get
+  {-# INLINE get' #-}
+  put' = Lazy.put
+  {-# INLINE put' #-}
+  state' = Lazy.state . fmap swap
+  {-# INLINE state' #-}
+
+instance Monad m => State' tag s (Strict.RWST r w s m) where
+  get' = Strict.get
+  {-# INLINE get' #-}
+  put' = Strict.put
+  {-# INLINE put' #-}
+  state' = Strict.state . fmap swap
   {-# INLINE state' #-}
 
 -- | Gets a specific component of the state, using the provided projection function.

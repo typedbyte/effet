@@ -65,9 +65,10 @@ class Monad m => Cont' tag m where
   callCC' :: ((a -> m b) -> m a) -> m a
 
 makeHandler ''Cont'
+makeFinder  ''Cont'
 makeTagger  ''Cont'
 
-instance {-# OVERLAPPABLE #-} Control (Cont' tag) t m => Cont' tag (Via eff t m) where
+instance Control (Cont' tag) t m => Cont' tag (EachVia '[] t m) where
   callCC' f =
     liftWith
       ( \run -> callCC' @tag $ \c -> run . f $

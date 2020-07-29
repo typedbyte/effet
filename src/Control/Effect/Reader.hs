@@ -47,9 +47,11 @@ module Control.Effect.Reader
   ) where
 
 -- transformers
-import qualified Control.Monad.Trans.Reader as R
+import qualified Control.Monad.Trans.Reader   as R
+import qualified Control.Monad.Trans.RWS.CPS  as Strict
+import qualified Control.Monad.Trans.RWS.Lazy as Lazy
 
-import Control.Effect.Machinery (G, Tagger(Tagger), Via, makeTaggedEffect, runVia)
+import Control.Effect.Machinery
 
 -- | An effect that adds an immutable state (i.e., an \"environment\") to a given
 -- computation. The effect allows to read values from the environment, pass values
@@ -83,6 +85,22 @@ instance Monad m => Reader' tag r (R.ReaderT r m) where
   local' = R.local
   {-# INLINE local' #-}
   reader' = R.reader
+  {-# INLINE reader' #-}
+
+instance (Monad m, Monoid w) => Reader' tag r (Lazy.RWST r w s m) where
+  ask' = Lazy.ask
+  {-# INLINE ask' #-}
+  local' = Lazy.local
+  {-# INLINE local' #-}
+  reader' = Lazy.reader
+  {-# INLINE reader' #-}
+
+instance Monad m => Reader' tag r (Strict.RWST r w s m) where
+  ask' = Strict.ask
+  {-# INLINE ask' #-}
+  local' = Strict.local
+  {-# INLINE local' #-}
+  reader' = Strict.reader
   {-# INLINE reader' #-}
 
 -- | Gets a specific component of the environment, using the provided projection function.

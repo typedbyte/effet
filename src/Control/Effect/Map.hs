@@ -55,7 +55,7 @@ module Control.Effect.Map
 import Data.Maybe     (isJust)
 import Prelude hiding (lookup)
 
-import Control.Effect.Machinery (G, Tagger(Tagger), makeTaggedEffect)
+import Control.Effect.Machinery
 
 -- | An effect that adds a mutable collection of key-value pairs to a given computation.
 class Monad m => Map' tag k v m | tag m -> k v where
