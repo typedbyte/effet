@@ -99,12 +99,12 @@ type Effect = SomeMonad -> Constraint
 -- interpreters.
 type Transformer = SomeMonad -> Type -> Type
 
--- | This type synonym indicates that an effect is handled by a specific monad
+-- | This constraint synonym indicates that an effect is handled by a specific monad
 -- transformer.
 type Handle (eff :: Effect) (t :: Transformer) m =
   eff (t m)
 
--- | This type synonym indicates that an effect @eff@ is not at the head of the
+-- | This constraint synonym indicates that an effect @eff@ is not at the head of the
 -- type level list of effects to be handled, so the effect must be found further
 -- down in the tail @effs@.
 --
