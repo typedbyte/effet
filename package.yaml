@@ -17,7 +17,7 @@ dependencies:
 - base              >= 4.7      && < 5
 - containers        >= 0.6.2.1  && < 0.7
 - monad-control     >= 1.0.2.3  && < 1.1
-- template-haskell  >= 2.15.0.0 && < 2.16
+- template-haskell  >= 2.14.0.0 && < 3
 - transformers      >= 0.5.6.2  && < 0.6
 - transformers-base >= 0.4.5.2  && < 0.5
 

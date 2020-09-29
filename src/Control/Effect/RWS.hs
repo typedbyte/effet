@@ -89,7 +89,7 @@ instance (Monad m, Monoid w) => RWS' tag r w s (Strict.RWST r w s m)
 newtype Separation m a =
   Separation { _runSeparation :: m a }
     deriving (Applicative, Functor, Monad, MonadIO)
-    deriving (MonadTrans, MonadTransControl) via Default
+    deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
     deriving (R.Reader' tag r, W.Writer' tag w, S.State' tag s)
 
@@ -120,7 +120,7 @@ runSeparatedRWS = coerce
 newtype Tagger tag new m a =
   Tagger { runRWSTagger :: m a }
     deriving (Applicative, Functor, Monad, MonadIO)
-    deriving (MonadTrans, MonadTransControl) via Default
+    deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
 
 instance RWS' new r w s m => RWS' tag r w s (Tagger tag new m)

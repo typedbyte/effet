@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 397bba600623b58701020a4ec01a2dff5e707d155f8f98e84f63423537604919
+-- hash: 68b70c661ba2bd386aa951090b3aad5dcefe34a19101586336bd00ac42a002fa
 
 name:           effet
 version:        0.2.0.0
@@ -33,7 +33,6 @@ library
       Control.Effect.Embed
       Control.Effect.Error
       Control.Effect.Machinery
-      Control.Effect.Machinery.Default
       Control.Effect.Machinery.Tagger
       Control.Effect.Machinery.TH
       Control.Effect.Machinery.Via
@@ -61,7 +60,7 @@ library
       base >=4.7 && <5
     , containers >=0.6.2.1 && <0.7
     , monad-control >=1.0.2.3 && <1.1
-    , template-haskell >=2.15.0.0 && <2.16
+    , template-haskell >=2.14.0.0 && <3
     , transformers >=0.5.6.2 && <0.6
     , transformers-base >=0.4.5.2 && <0.5
   default-language: Haskell2010

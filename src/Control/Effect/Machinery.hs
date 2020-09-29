@@ -13,8 +13,7 @@
 -----------------------------------------------------------------------------
 module Control.Effect.Machinery
   ( -- * Re-exports from @effet@
-    module Control.Effect.Machinery.Default
-  , module Control.Effect.Machinery.Tagger
+    module Control.Effect.Machinery.Tagger
   , module Control.Effect.Machinery.TH
   , module Control.Effect.Machinery.Via
     -- * Re-exports from @base@
@@ -23,6 +22,7 @@ module Control.Effect.Machinery
   , module Control.Monad.Trans.Control
     -- * Re-exports from @transformers@
   , module Control.Monad.Trans.Class
+  , module Control.Monad.Trans.Identity
     -- * Re-exports from @transformers-base@
   , module Control.Monad.Base
   ) where
@@ -31,15 +31,15 @@ module Control.Effect.Machinery
 import Control.Monad.IO.Class
 
 -- monad-control
-import Control.Monad.Trans.Control -- hiding (embed)
+import Control.Monad.Trans.Control
 
 -- transformers
 import Control.Monad.Trans.Class
+import Control.Monad.Trans.Identity
 
 -- transformers-base
 import Control.Monad.Base
 
-import Control.Effect.Machinery.Default
 import Control.Effect.Machinery.Tagger
 import Control.Effect.Machinery.TH
 import Control.Effect.Machinery.Via

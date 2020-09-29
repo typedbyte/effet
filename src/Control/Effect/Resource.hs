@@ -113,7 +113,7 @@ onException = onException' @G
 newtype LowerIO m a =
   LowerIO { _runLowerIO :: m a }
     deriving (Applicative, Functor, Monad, MonadIO)
-    deriving (MonadTrans, MonadTransControl) via Default
+    deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
 
 instance MonadBaseControl IO m => Resource' tag (LowerIO m) where

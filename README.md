@@ -108,7 +108,7 @@ An effect handler is a monad transformer which provides an instance for our effe
 newtype LocalFS m a =
   LocalFS { runLocalFS :: m a }
     deriving (Applicative, Functor, Monad, MonadIO)
-    deriving (MonadTrans, MonadTransControl) via Default
+    deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
 ```
 
@@ -142,7 +142,7 @@ Done! Now let's provide similar definitions for our virtual file system. Instead
 newtype VirtualFS m a =
   VirtualFS { runVirtualFS :: m a }
     deriving (Applicative, Functor, Monad, MonadIO)
-    deriving (MonadTrans, MonadTransControl) via Default
+    deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
 
 instance Map' tag FilePath String m => FileSystem' tag (VirtualFS m) where

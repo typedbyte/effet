@@ -19,12 +19,11 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Control (MonadBaseControl, MonadTransControl)
 
 -- transformers
-import Control.Monad.Trans.Class (MonadTrans)
+import Control.Monad.Trans.Class    (MonadTrans)
+import Control.Monad.Trans.Identity (IdentityT(IdentityT))
 
 -- transformers-base
 import Control.Monad.Base (MonadBase)
-
-import Control.Effect.Machinery.Default (Default(Default))
 
 -- | This type provides instances for effect type classes in order to enable
 -- tagging, retagging and untagging of effects. Whenever this type is used as
@@ -37,5 +36,5 @@ import Control.Effect.Machinery.Default (Default(Default))
 newtype Tagger tag new m a =
   Tagger { runTagger :: m a }
     deriving (Applicative, Functor, Monad, MonadIO)
-    deriving (MonadTrans, MonadTransControl) via Default
+    deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
