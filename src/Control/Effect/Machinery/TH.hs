@@ -45,8 +45,8 @@ import Language.Haskell.TH.Syntax hiding (Lift, lift)
 -- transformers
 import Control.Monad.Trans.Class (lift)
 
-import Control.Effect.Machinery.Tagger (Tagger, runTagger)
-import Control.Effect.Machinery.Via    (Control, EachVia, Find, G, Handle, Lift,
+import Control.Effect.Machinery.Tagger (Tagger(..), runTagger)
+import Control.Effect.Machinery.Via    (Control, EachVia(..), Find, G, Handle, Lift,
                                         Via, runVia)
 
 data ClassInfo = ClassInfo

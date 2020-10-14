@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df92fee8597297b24a1a0e0ac46f0b028382ad585bd69cc307e0701203bd4502
+-- hash: cd058ddcf2f87961e00a8942c5ac3ebcda5ea45c798d1fdcd2b73cbe43c5f949
 
 name:           effet
-version:        0.3.0.0
+version:        0.3.0.1
 synopsis:       An Effect System based on Type Classes
 description:    Please see the README on GitHub at <https://github.com/typedbyte/effet#readme>
 category:       Control

@@ -14,3 +14,7 @@
 * Adapted the embed effect which now supports tagging/retagging/untagging.
 * Introduced the managed effect.
 * Relaxed bounds a bit for better compilation.
+
+## 0.3.0.1 (2020-10-14)
+
+* Fixed some compilation issues with GHC 8.6

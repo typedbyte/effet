@@ -87,11 +87,37 @@ instance (Monad m, Monoid w) => RWS' tag r w s (Strict.RWST r w s m)
 -- When interpreting the effect, you usually don\'t interact with this type directly,
 -- but instead use one of its corresponding interpretation functions.
 newtype Separation m a =
-  Separation { _runSeparation :: m a }
+  Separation { runSeparation :: m a }
     deriving (Applicative, Functor, Monad, MonadIO)
     deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
-    deriving (R.Reader' tag r, W.Writer' tag w, S.State' tag s)
+
+-- The following three "boring" instances are needed by hand, since GHC 8.6 cannot
+-- derive them. With newer GHCs, you can derive these instances by adding above:
+-- deriving (R.Reader' tag r, W.Writer' tag w, S.State' tag s)
+instance R.Reader' tag r m => R.Reader' tag r (Separation m) where
+  ask' = Separation (R.ask' @tag)
+  {-# INLINE ask' #-}
+  local' f m = Separation (R.local' @tag f (runSeparation m))
+  {-# INLINE local' #-}
+  reader' f = Separation (R.reader' @tag f)
+  {-# INLINE reader' #-}
+
+instance W.Writer' tag w m => W.Writer' tag w (Separation m) where
+  tell' w = Separation (W.tell' @tag w)
+  {-# INLINE tell' #-}
+  listen' m = Separation (W.listen' @tag (runSeparation m))
+  {-# INLINE listen' #-}
+  censor' f m = Separation (W.censor' @tag f (runSeparation m))
+  {-# INLINE censor' #-}
+
+instance S.State' tag s m => S.State' tag s (Separation m) where
+  get' = Separation (S.get' @tag)
+  {-# INLINE get' #-}
+  put' s = Separation (S.put' @tag s)
+  {-# INLINE put' #-}
+  state' f = Separation (S.state' @tag f)
+  {-# INLINE state' #-}
 
 instance (R.Reader' tag r m, W.Writer' tag w m, S.State' tag s m) => RWS' tag r w s (Separation m)
 
