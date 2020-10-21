@@ -22,6 +22,8 @@ import qualified Data.Functor.Identity as I
 --
 -- You usually need this when an expression of type @Monad m => m a@ remains
 -- after handling all the effects and you want to extract its pure result.
+--
+-- @since 0.3.0.2
 runIdentity :: I.Identity a -> a
 runIdentity = I.runIdentity
 {-# INLINE runIdentity #-}
