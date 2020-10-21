@@ -41,6 +41,8 @@
 
 ## Quick-Start Guide
 
+Examples can be found in the [examples](/examples/Example) folder. The following sections give a quick overview of the most important features.
+
 ### Defining Effects
 
 When defining effects or effect handlers, the module *Control.Effect.Machinery* provides everything we need:
@@ -285,4 +287,3 @@ ourProgram = functionA >> tagFileSystem' @"b" functionB
 * `TemplateHaskell`-based code generation can yield code that does not compile if you go crazy with `m`-based parameters in higher-order effect methods (where `m` is the monad type parameter of the effect type class). In such cases, one has to write the necessary type class instances by hand. They are explained in the documentation of the module `Control.Effect.Machinery.TH`.
 * Effect type classes that are based on other effect type classes (like `RWS`) are possible, but cannot be used with the provided code generation infrastructure yet (not to be confused with writing an effect *handler* based on other effects, which is possible).
 * The performance should be `mtl`-like, but this has not been verified yet.
-* The library needs some tests.

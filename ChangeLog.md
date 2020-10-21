@@ -18,3 +18,7 @@
 ## 0.3.0.1 (2020-10-14)
 
 * Fixed some compilation issues with GHC 8.6
+
+## 0.3.0.2 (2020-10-21)
+
+* Added Control.Effect.Identity for pure effect interpretations.

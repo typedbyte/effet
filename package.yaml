@@ -1,5 +1,5 @@
 name:        effet
-version:     0.3.0.1
+version:     0.3.0.2
 github:      "typedbyte/effet"
 license:     BSD3
 author:      "Michael Szvetits"
@@ -23,6 +23,14 @@ dependencies:
 
 library:
   source-dirs: src
+
+tests:
+  examples:
+    source-dirs:  examples
+    main:         Main.hs
+    dependencies:
+    - effet
+    - hspec >= 2.6.0 && < 3
 
 default-extensions:
 - AllowAmbiguousTypes
