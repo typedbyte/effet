@@ -14,13 +14,19 @@
 -- you usually need the untagged interpretations.
 -----------------------------------------------------------------------------
 module Control.Effect.Map.Lazy
-  ( -- * Interpreter Type
+  ( -- * Interpreter Implementation
     LazyMap
+  , clear
+  , lookup
+  , update
     -- * Tagged Interpretations
   , runMap'
     -- * Untagged Interpretations
   , runMap
   ) where
+
+-- base
+import Prelude hiding (lookup)
 
 -- containers
 import qualified Data.Map.Lazy as M
@@ -43,12 +49,29 @@ newtype LazyMap k v m a =
     deriving (MonadBase b, MonadBaseControl b)
 
 instance (Monad m, Ord k) => Map' tag k v (LazyMap k v m) where
-  clear' = LazyMap $ S.put M.empty
+  clear' = clear
   {-# INLINE clear' #-}
-  lookup' = LazyMap . S.gets . M.lookup
+  lookup' = lookup
   {-# INLINE lookup' #-}
-  update' k mv = LazyMap $ S.modify (M.alter (const mv) k)
+  update' = update
   {-# INLINE update' #-}
+
+-- | Deletes all key-value pairs from the map.
+clear :: Monad m => LazyMap k v m ()
+clear = LazyMap $ S.put M.empty
+{-# INLINE clear #-}
+
+-- | Searches for a value that corresponds to a given key.
+-- Returns 'Nothing' if the key cannot be found.
+lookup :: (Monad m, Ord k) => k -> LazyMap k v m (Maybe v)
+lookup = LazyMap . S.gets . M.lookup
+{-# INLINE lookup #-}
+
+-- | Updates the value that corresponds to a given key.
+-- Passing 'Nothing' as the updated value removes the key-value pair from the map.
+update :: (Monad m, Ord k) => k -> Maybe v -> LazyMap k v m ()
+update k mv = LazyMap $ S.modify (M.alter (const mv) k)
+{-# INLINE update #-}
 
 -- | Runs the map effect, initialized with an empty map.
 runMap' :: forall tag k v m a. Monad m

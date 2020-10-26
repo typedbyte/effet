@@ -14,13 +14,19 @@
 -- you usually need the untagged interpretations.
 -----------------------------------------------------------------------------
 module Control.Effect.Map.Strict
-  ( -- * Interpreter Type
+  ( -- * Interpreter Implementation
     StrictMap
+  , clear
+  , lookup
+  , update
     -- * Tagged Interpretations
   , runMap'
     -- * Untagged Interpretations
   , runMap
   ) where
+
+-- base
+import Prelude hiding (lookup)
 
 -- containers
 import qualified Data.Map.Strict as M
@@ -43,12 +49,29 @@ newtype StrictMap k v m a =
     deriving (MonadBase b, MonadBaseControl b)
 
 instance (Monad m, Ord k) => Map' tag k v (StrictMap k v m) where
-  clear' = StrictMap $ S.put M.empty
+  clear' = clear
   {-# INLINE clear' #-}
-  lookup' = StrictMap . S.gets . M.lookup
+  lookup' = lookup
   {-# INLINE lookup' #-}
-  update' k mv = StrictMap $ S.modify (M.alter (const mv) k)
+  update' = update
   {-# INLINE update' #-}
+
+-- | Deletes all key-value pairs from the map.
+clear :: Monad m => StrictMap k v m ()
+clear = StrictMap $ S.put M.empty
+{-# INLINE clear #-}
+
+-- | Searches for a value that corresponds to a given key.
+-- Returns 'Nothing' if the key cannot be found.
+lookup :: (Monad m, Ord k) => k -> StrictMap k v m (Maybe v)
+lookup = StrictMap . S.gets . M.lookup
+{-# INLINE lookup #-}
+
+-- | Updates the value that corresponds to a given key.
+-- Passing 'Nothing' as the updated value removes the key-value pair from the map.
+update :: (Monad m, Ord k) => k -> Maybe v -> StrictMap k v m ()
+update k mv = StrictMap $ S.modify (M.alter (const mv) k)
+{-# INLINE update #-}
 
 -- | Runs the map effect, initialized with an empty map.
 runMap' :: forall tag k v m a. Monad m
