@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Effect.RWS.Lazy
@@ -27,7 +28,7 @@ module Control.Effect.RWS.Lazy
 -- transformers
 import Control.Monad.Trans.RWS.Lazy (RWST, runRWST)
 
-import Control.Effect.Machinery (EachVia, G, runVia)
+import Control.Effect.Machinery (EachVia, makeUntagged, runVia)
 import Control.Effect.Reader    (Reader, Reader')
 import Control.Effect.RWS       (RWS, RWS')
 import Control.Effect.State     (State, State')
@@ -50,11 +51,6 @@ evalRWS' r s = fmap reorder . (\m -> runRWST m r s) . runVia
     reorder (a, _, w) = (w, a)
 {-# INLINE evalRWS' #-}
 
--- | The untagged version of 'evalRWS''.
-evalRWS :: Functor m => r -> s -> ('[RWS r w s, Reader r, Writer w, State s] `EachVia` RWST r w s) m a -> m (w, a)
-evalRWS = evalRWS' @G
-{-# INLINE evalRWS #-}
-
 -- | Runs the RWS effect and discards the result of the interpreted program.
 execRWS'
   :: forall tag r w s m a. Functor m
@@ -71,11 +67,6 @@ execRWS' r s = fmap reorder . (\m -> runRWST m r s) . runVia
   where
     reorder (_, s', w) = (w, s')
 {-# INLINE execRWS' #-}
-
--- | The untagged version of 'execRWS''.
-execRWS :: Functor m => r -> s -> ('[RWS r w s, Reader r, Writer w, State s] `EachVia` RWST r w s) m a -> m (w, s)
-execRWS = execRWS' @G
-{-# INLINE execRWS #-}
 
 -- | Runs the RWS effect and returns the final output, the final state and the
 -- result of the interpreted program.
@@ -95,7 +86,4 @@ runRWS' r s = fmap reorder . (\m -> runRWST m r s) . runVia
     reorder (a, s', w) = (w, s', a)
 {-# INLINE runRWS' #-}
 
--- | The untagged version of 'runRWS''.
-runRWS :: Functor m => r -> s -> ('[RWS r w s, Reader r, Writer w, State s] `EachVia` RWST r w s) m a -> m (w, s, a)
-runRWS = runRWS' @G
-{-# INLINE runRWS #-}
+makeUntagged ['evalRWS', 'execRWS', 'runRWS']

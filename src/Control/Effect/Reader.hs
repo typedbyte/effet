@@ -14,6 +14,8 @@
 module Control.Effect.Reader
   ( -- * Tagged Reader Effect
     Reader'(..)
+    -- * Convenience Functions
+  , asks'
     -- * Untagged Reader Effect
     -- | If you don't require disambiguation of multiple reader effects
     -- (i.e., you only have one reader effect in your monadic context),
@@ -22,11 +24,6 @@ module Control.Effect.Reader
   , ask
   , local
   , reader
-    -- * Convenience Functions
-    -- | If you don't require disambiguation of multiple reader effects
-    -- (i.e., you only have one reader effect in your monadic context),
-    -- it is recommended to always use the untagged functions.
-  , asks'
   , asks
     -- * Interpretations
   , runReader'
@@ -110,10 +107,7 @@ asks' :: forall tag r m a. Reader' tag r m
 asks' = reader' @tag
 {-# INLINE asks' #-}
 
--- | The untagged version of 'asks''.
-asks :: Reader r m => (r -> a) -> m a
-asks = asks' @G
-{-# INLINE asks #-}
+makeUntagged ['asks']
 
 -- | Runs the reader effect.
 runReader' :: forall tag r m a. r                   -- ^ The initial environment.
@@ -123,6 +117,4 @@ runReader' r = flip R.runReaderT r . runVia
 {-# INLINE runReader' #-}
 
 -- | The untagged version of 'runReader''.
-runReader :: r -> (Reader r `Via` R.ReaderT r) m a -> m a
-runReader = runReader' @G
-{-# INLINE runReader #-}
+makeUntagged ['runReader']

@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Effect.State.Lazy
@@ -31,7 +32,7 @@ import Data.Tuple (swap)
 import Control.Monad.Trans.State.Lazy (StateT, runStateT)
 
 import Control.Effect.State     (State, State')
-import Control.Effect.Machinery (G, Via, runVia)
+import Control.Effect.Machinery (Via, makeUntagged, runVia)
 
 -- | Runs the state effect and discards the final state.
 evalState' :: forall tag s m a. Functor m
@@ -41,11 +42,6 @@ evalState' :: forall tag s m a. Functor m
 evalState' s = fmap fst . flip runStateT s . runVia
 {-# INLINE evalState' #-}
 
--- | The untagged version of 'evalState''.
-evalState :: Functor m => s -> (State s `Via` StateT s) m a -> m a
-evalState = evalState' @G
-{-# INLINE evalState #-}
-
 -- | Runs the state effect and discards the result of the interpreted program.
 execState' :: forall tag s m a. Functor m
            => s                                 -- ^ The initial state.
@@ -53,11 +49,6 @@ execState' :: forall tag s m a. Functor m
            -> m s                               -- ^ The program with its state effect handled, producing the final state @s@.
 execState' s = fmap snd . flip runStateT s . runVia
 {-# INLINE execState' #-}
-
--- | The untagged version of 'execState''.
-execState :: Functor m => s -> (State s `Via` StateT s) m a -> m s
-execState = execState' @G
-{-# INLINE execState #-}
 
 -- | Runs the state effect and returns both the final state and the result of the interpreted program.
 runState' :: forall tag s m a. Functor m
@@ -67,7 +58,4 @@ runState' :: forall tag s m a. Functor m
 runState' s = fmap swap . flip runStateT s . runVia
 {-# INLINE runState' #-}
 
--- | The untagged version of 'runState''.
-runState :: Functor m => s -> (State s `Via` StateT s) m a -> m (s, a)
-runState = runState' @G
-{-# INLINE runState #-}
+makeUntagged ['evalState', 'execState', 'runState']

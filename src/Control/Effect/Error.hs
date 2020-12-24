@@ -14,6 +14,8 @@
 module Control.Effect.Error
   ( -- * Tagged Error Effect
     Error'(..)
+    -- * Convenience Functions
+  , liftEither'
     -- * Untagged Error Effect
     -- | If you don't require disambiguation of multiple error effects
     -- (i.e., you only have one error effect in your monadic context),
@@ -21,11 +23,6 @@ module Control.Effect.Error
   , Error
   , throwError
   , catchError
-    -- * Convenience Functions
-    -- | If you don't require disambiguation of multiple error effects
-    -- (i.e., you only have one error effect in your monadic context),
-    -- it is recommended to always use the untagged functions.
-  , liftEither'
   , liftEither
     -- * Interpretations
   , runError'
@@ -75,10 +72,7 @@ liftEither' :: forall tag e m a. Error' tag e m => Either e a -> m a
 liftEither' = either (throwError' @tag) pure
 {-# INLINE liftEither' #-}
 
--- | The untagged version of 'liftEither''.
-liftEither :: Error e m => Either e a -> m a
-liftEither = liftEither' @G
-{-# INLINE liftEither #-}
+makeUntagged ['liftEither']
 
 -- | Runs the error effect by wrapping exceptions in the 'Either' type.
 runError' :: (Error' tag e `Via` ExceptT e) m a -> m (Either e a)
@@ -86,6 +80,4 @@ runError' = coerce
 {-# INLINE runError' #-}
 
 -- | The untagged version of 'runError''.
-runError :: (Error e `Via` ExceptT e) m a -> m (Either e a)
-runError = coerce
-{-# INLINE runError #-}
+makeUntagged ['runError']

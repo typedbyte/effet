@@ -35,18 +35,26 @@ combineRWS = do
 
 spec :: Spec
 spec = do
+  it "tags and retags the effect" $
+    ( runIdentity         -- result:  (Sum Int, Int, (Int, Int, Int))
+    . L.runRWS' @"b" 10 8 -- result:  Monad m => m (Sum Int, Int, (Int, Int, Int))
+    . retagRWS' @"a" @"b" -- effects: RWS "b" Int (Sum Int) Int
+    . tagRWS' @"a"        -- effects: RWS "a" Int (Sum Int) Int
+    $ combineRWS )        -- effects: RWS Int (Sum Int) Int
+      `shouldBe`
+        (Sum 18, 9, (30, 13, 9))
   it "combines reader/write/state test cases" $
-    ( runIdentity     -- result:  (Sum Int, Int, (Int, Int, Int))
-    . L.runRWS 20 5   -- result:  Monad m => m (Sum Int, Int, (Int, Int, Int))
-    $ combineRWS )    -- effects: RWS Int (Sum Int) Int
+    ( runIdentity         -- result:  (Sum Int, Int, (Int, Int, Int))
+    . L.runRWS 20 5       -- result:  Monad m => m (Sum Int, Int, (Int, Int, Int))
+    $ combineRWS )        -- effects: RWS Int (Sum Int) Int
       `shouldBe`
         (Sum 18, 6, (60, 13, 6))
   it "separates reader/write/state components" $
-    ( runIdentity     -- result:  (Int, (Sum Int, (Int, Int, Int)))
-    . L.runState 3    -- result:  Monad m => m (Int, (Sum Int, (Int, Int, Int)))
-    . S.runWriter     -- effects: State Int
-    . runReader 15    -- effects: Writer (Sum Int), State Int
-    . runSeparatedRWS -- effects: Reader Int, Writer (Sum Int), State Int
-    $ combineRWS )    -- effects: RWS Int (Sum Int) Int
+    ( runIdentity         -- result:  (Int, (Sum Int, (Int, Int, Int)))
+    . L.runState 3        -- result:  Monad m => m (Int, (Sum Int, (Int, Int, Int)))
+    . S.runWriter         -- effects: State Int
+    . runReader 15        -- effects: Writer (Sum Int), State Int
+    . runSeparatedRWS     -- effects: Reader Int, Writer (Sum Int), State Int
+    $ combineRWS )        -- effects: RWS Int (Sum Int) Int
       `shouldBe`
         (4, (Sum 18, (45, 13, 4)))

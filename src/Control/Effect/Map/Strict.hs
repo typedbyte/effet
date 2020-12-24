@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Effect.Map.Strict
@@ -81,6 +82,4 @@ runMap' = flip S.evalStateT M.empty . runStrictMap . runVia
 {-# INLINE runMap' #-}
 
 -- | The untagged version of 'runMap''.
-runMap :: Monad m => (Map k v `Via` StrictMap k v) m a -> m a
-runMap = runMap' @G
-{-# INLINE runMap #-}
+makeUntagged ['runMap']

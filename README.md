@@ -138,7 +138,13 @@ runLocalFileSystem :: (FileSystem `Via` LocalFS) m a -> m a
 runLocalFileSystem = runLocalFileSystem' @G
 ```
 
-Done! Now let's provide similar definitions for our virtual file system. Instead of `IO`, we will use the `Map` effect that is shipped with `effet` in order to map file paths to their corresponding contents. For simplification, we will assume that the contents of non-existing files are empty strings:
+We can also let `effet` generate the untagged version of `runLocalFileSystem`, so we don't have to write it by hand:
+
+```haskell
+makeUntagged ['runLocalFileSystem']
+```
+
+Now let's provide similar definitions for our virtual file system. Instead of `IO`, we will use the `Map` effect that is shipped with `effet` in order to map file paths to their corresponding contents. For simplification, we will assume that the contents of non-existing files are empty strings:
 
 ```haskell
 newtype VirtualFS m a =
@@ -154,11 +160,8 @@ instance Map' tag FilePath String m => FileSystem' tag (VirtualFS m) where
 runVirtualFileSystem' :: (FileSystem' tag `Via` VirtualFS) m a -> m a
 runVirtualFileSystem' = coerce
 
-runVirtualFileSystem :: (FileSystem `Via` VirtualFS) m a -> m a
-runVirtualFileSystem = runVirtualFileSystem' @G
+makeUntagged ['runVirtualFileSystem']
 ```
-
-As we can see above, there is some boilerplate involved when defining effect handlers, like the two `run`-functions which look almost identically. There is certainly potential to generate more code to mitigate this in the future.
 
 ### Using Effect Handlers
 
@@ -285,5 +288,4 @@ ourProgram = functionA >> tagFileSystem' @"b" functionB
 ## Limitations and Remarks
 
 * `TemplateHaskell`-based code generation can yield code that does not compile if you go crazy with `m`-based parameters in higher-order effect methods (where `m` is the monad type parameter of the effect type class). In such cases, one has to write the necessary type class instances by hand. They are explained in the documentation of the module `Control.Effect.Machinery.TH`.
-* Effect type classes that are based on other effect type classes (like `RWS`) are possible, but cannot be used with the provided code generation infrastructure yet (not to be confused with writing an effect *handler* based on other effects, which is possible).
 * The performance should be `mtl`-like, but this has not been verified yet.

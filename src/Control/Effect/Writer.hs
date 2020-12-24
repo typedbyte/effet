@@ -17,6 +17,8 @@
 module Control.Effect.Writer
   ( -- * Tagged Writer Effect
     Writer'(..)
+    -- * Convenience Functions
+  , listens'
     -- * Untagged Writer Effect
     -- | If you don't require disambiguation of multiple writer effects
     -- (i.e., you only have one writer effect in your monadic context),
@@ -25,11 +27,6 @@ module Control.Effect.Writer
   , tell
   , listen
   , censor
-    -- * Convenience Functions
-    -- | If you don't require disambiguation of multiple writer effects
-    -- (i.e., you only have one writer effect in your monadic context),
-    -- it is recommended to always use the untagged functions.
-  , listens'
   , listens
     -- * Tagging and Untagging
     -- | Conversion functions between the tagged and untagged writer effect,
@@ -58,7 +55,7 @@ import qualified Control.Monad.Trans.Writer.CPS  as S
 import Control.Effect.Machinery
 
 -- | An effect that adds a write-only, accumulated output to a given computation.
-class Monad m => Writer' tag w m | tag m -> w where
+class (Monad m, Monoid w) => Writer' tag w m | tag m -> w where
   -- | Produces the output @w@. In other words, @w@ is appended to the accumulated output.
   tell' :: w -> m ()
   -- | Executes a sub-computation and appends @w@ to the accumulated output.
@@ -113,7 +110,4 @@ listens' f action = do
   pure (f w, a)
 {-# INLINE listens' #-}
 
--- | The untagged version of 'listens''.
-listens :: Writer w m => (w -> b) -> m a -> m (b, a)
-listens = listens' @G
-{-# INLINE listens #-}
+makeUntagged ['listens']

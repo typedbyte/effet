@@ -54,12 +54,12 @@ import Control.Effect.Machinery
 -- | An effect that allows a computation to allocate resources which are
 -- guaranteed to be released after the computation.
 --
--- @since 0.3.0.0
-class Monad m => Managed' tag m where
+-- @since 0.4.0.0
+class MonadIO m => Managed' tag m where
   -- | Acquire a resource by specifying an acquisition action and a release
   -- action to be used for cleanup after the computation.
   --
-  -- @since 0.3.0.0
+  -- @since 0.4.0.0
   manage' :: m a        -- ^ The computation which acquires the resource.
           -> (a -> m b) -- ^ The computation which releases the resource.
           -> m a        -- ^ The acquired resource.
@@ -73,13 +73,13 @@ makeTaggedEffect ''Managed'
 -- When interpreting the effect, you usually don\'t interact with this type directly,
 -- but instead use one of its corresponding interpretation functions.
 --
--- @since 0.3.0.0
+-- @since 0.4.0.0
 newtype Bracket n m a = Bracket { runBracket :: ReaderT (IORef [n ()]) m a }
   deriving (Applicative, Functor, Monad, MonadIO)
   deriving (MonadTrans, MonadTransControl)
   deriving (MonadBase b, MonadBaseControl b)
 
-instance MonadBase IO m => Managed' tag (Bracket m m) where
+instance (MonadBase IO m, MonadIO m) => Managed' tag (Bracket m m) where
   manage' alloc free = Bracket . ReaderT $
     \ref -> do
       a <- runReaderT (runBracket alloc) ref
@@ -91,7 +91,7 @@ instance MonadBase IO m => Managed' tag (Bracket m m) where
 
 -- | Runs the managed effect using 'IO.bracket'.
 --
--- @since 0.3.0.0
+-- @since 0.4.0.0
 runManaged' :: forall tag m a. MonadBaseControl IO m => (Managed' tag `Via` Bracket m) m a -> m a
 runManaged' program =
   liftedBracket
@@ -116,7 +116,5 @@ runManaged' program =
 
 -- | The untagged version of 'runManaged''.
 --
--- @since 0.3.0.0
-runManaged :: MonadBaseControl IO m => (Managed `Via` Bracket m) m a -> m a
-runManaged = runManaged' @G
-{-# INLINE runManaged #-}
+-- @since 0.4.0.0
+makeUntagged ['runManaged']

@@ -16,6 +16,11 @@
 module Control.Effect.Map
   ( -- * Tagged Map Effect
     Map'(..)
+    -- * Convenience Functions
+  , delete'
+  , exists'
+  , insert'
+  , modify'
     -- * Untagged Map Effect
     -- | If you don't require disambiguation of multiple map effects
     -- (i.e., you only have one map effect in your monadic context),
@@ -24,17 +29,9 @@ module Control.Effect.Map
   , clear
   , lookup
   , update
-    -- * Convenience Functions
-    -- | If you don't require disambiguation of multiple map effects
-    -- (i.e., you only have one map effect in your monadic context),
-    -- it is recommended to always use the untagged functions.
-  , delete'
   , delete
-  , exists'
   , exists
-  , insert'
   , insert
-  , modify'
   , modify
     -- * Tagging and Untagging
     -- | Conversion functions between the tagged and untagged map effect,
@@ -75,31 +72,16 @@ delete' :: forall tag k v m. Map' tag k v m => k -> m ()
 delete' k = update' @tag k Nothing
 {-# INLINE delete' #-}
 
--- | The untagged version of 'delete''.
-delete :: Map k v m => k -> m ()
-delete = delete' @G
-{-# INLINE delete #-}
-
 -- | Checks if the map contains a given key.
 exists' :: forall tag k v m. Map' tag k v m => k -> m Bool
 exists' = fmap isJust . lookup' @tag
 {-# INLINE exists' #-}
-
--- | The untagged version of 'exists''.
-exists :: Map k v m => k -> m Bool
-exists = exists' @G
-{-# INLINE exists #-}
 
 -- | Inserts a new key-value pair into the map. If the key is already present
 -- in the map, the associated value is replaced with the new value.
 insert' :: forall tag k v m. Map' tag k v m => k -> v -> m ()
 insert' k = update' @tag k . Just
 {-# INLINE insert' #-}
-
--- | The untagged version of 'insert''.
-insert :: Map k v m => k -> v -> m ()
-insert = insert' @G
-{-# INLINE insert #-}
 
 -- | Updates the value that corresponds to a given key.
 -- If the key cannot be found, a corresponding default value is assumed.
@@ -116,7 +98,4 @@ modify' fallback f k = do
     Nothing -> insert' @tag k (f fallback)
 {-# INLINE modify' #-}
 
--- | The untagged version of 'modify''.
-modify :: Map k v m => v -> (v -> v) -> k -> m ()
-modify = modify' @G
-{-# INLINE modify #-}
+makeUntagged ['delete', 'exists', 'insert', 'modify']

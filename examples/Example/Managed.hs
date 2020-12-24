@@ -2,8 +2,7 @@
 module Example.Managed where
 
 -- base
-import Control.Monad.IO.Class (MonadIO)
-import Prelude         hiding (print)
+import Prelude hiding (print)
 
 -- hspec
 import Test.Hspec (Spec, it)
@@ -20,14 +19,14 @@ import Hspec (print, shouldPrint)
 newtype Handle = Handle { nameOf :: String }
 
 -- | Gets a managed virtual handle specified by a name.
-getHandle :: (Managed m, MonadIO m) => String -> m Handle
+getHandle :: Managed m => String -> m Handle
 getHandle name = manage
   ( print ("Alloc " ++ name) >> pure (Handle name) )
   ( \handle -> print $ "Free " ++ nameOf handle )
 
 -- | Simple program that makes use of two handles. Handles are destroyed
 -- automatically at the end of the program.
-useHandles :: (Managed m, MonadIO m) => m ()
+useHandles :: Managed m => m ()
 useHandles = do
   a <- getHandle "A"
   b <- getHandle "B"
@@ -35,7 +34,7 @@ useHandles = do
   print $ "Use " ++ nameOf b
 
 -- | Allocates some handlers, then throws an error.
-throwCheck :: (Error String m, Managed m, MonadIO m) => m ()
+throwCheck :: (Error String m, Managed m) => m ()
 throwCheck = do
   a <- getHandle "A"
   b <- getHandle "B"
@@ -50,13 +49,13 @@ spec = do
   it "manages a handle" $
     ( runManaged      -- result:  (MonadBaseControl IO m, MonadIO m) => m (),
                       --          unified with IO ()
-    $ getHandle "X" ) -- effects: Managed, MonadIO
+    $ getHandle "X" ) -- effects: Managed
       `shouldPrint`
         "\"Alloc X\"\n\"Free X\"\n"
   it "manages multiple handles" $
     ( runManaged      -- result:  (MonadBaseControl IO m, MonadIO m) => m (),
                       --          unified with IO ()
-    $ useHandles )    -- effects: Managed, MonadIO
+    $ useHandles )    -- effects: Managed
       `shouldPrint`
         (  "\"Alloc A\"\n"
         ++ "\"Alloc B\"\n"
@@ -68,8 +67,8 @@ spec = do
   it "manages multiple handles with an error" $
     ( runManaged      -- result:  (MonadBaseControl IO m, MonadIO m) => m (Either String ()),
                       --          unified with IO (Either String ())
-    . runError        -- effects: Managed, MonadIO
-    $ throwCheck )    -- effects: Error String, Managed, MonadIO
+    . runError        -- effects: Managed
+    $ throwCheck )    -- effects: Error String, Managed
       `shouldPrint`
         (  "\"Alloc A\"\n"
         ++ "\"Alloc B\"\n"

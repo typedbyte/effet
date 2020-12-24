@@ -14,6 +14,9 @@
 module Control.Effect.Resource
   ( -- * Tagged Resource Effect
     Resource'(..)
+    -- * Convenience Functions
+  , finally'
+  , onException'
     -- * Untagged Resource Effect
     -- | If you don't require disambiguation of multiple resource effects
     -- (i.e., you only have one resource effect in your monadic context),
@@ -21,13 +24,7 @@ module Control.Effect.Resource
   , Resource
   , bracket
   , bracketOnError
-    -- * Convenience Functions
-    -- | If you don't require disambiguation of multiple resource effects
-    -- (i.e., you only have one resource effect in your monadic context),
-    -- it is recommended to always use the untagged functions.
-  , finally'
   , finally
-  , onException'
   , onException
     -- * Interpretations
   , LowerIO
@@ -56,7 +53,9 @@ import Control.Effect.Machinery
 
 -- | An effect that allows a computation to allocate resources which are
 -- guaranteed to be released after their usage.
-class Monad m => Resource' tag m where
+--
+-- @since 0.4.0.0
+class MonadIO m => Resource' tag m where
   -- | Acquire a resource, use it, and then release the resource after usage.
   bracket' :: m a        -- ^ The computation which acquires the resource.
            -> (a -> m c) -- ^ The computation which releases the resource.
@@ -83,11 +82,6 @@ finally' use free =
   bracket' @tag (pure ()) (pure free) (const use)
 {-# INLINE finally' #-}
 
--- | The untagged version of 'finally''.
-finally :: Resource m => m a -> m b -> m a
-finally = finally' @G
-{-# INLINE finally #-}
-
 -- | A simpler version of 'bracketOnError'' where one computation is guaranteed
 -- to run after another in case the first computation throws an exception.
 onException' :: forall tag m a b. Resource' tag m
@@ -99,10 +93,7 @@ onException' use free =
   bracketOnError' @tag (pure ()) (const free) (const use)
 {-# INLINE onException' #-}
 
--- | The untagged version of 'onException''.
-onException :: Resource m => m a -> m b -> m a
-onException = onException' @G
-{-# INLINE onException #-}
+makeUntagged ['finally', 'onException']
 
 -- | The IO-based interpreter of the resource effect. This type implements the
 -- 'Resource'' type class by using 'IO.bracket', thus requiring 'IO' at the bottom
@@ -116,7 +107,7 @@ newtype LowerIO m a =
     deriving (MonadTrans, MonadTransControl) via IdentityT
     deriving (MonadBase b, MonadBaseControl b)
 
-instance MonadBaseControl IO m => Resource' tag (LowerIO m) where
+instance (MonadBaseControl IO m, MonadIO m) => Resource' tag (LowerIO m) where
   bracket' alloc free use =
     control $ \run ->
       IO.bracket
@@ -138,6 +129,4 @@ runResourceIO' = coerce
 {-# INLINE runResourceIO' #-}
 
 -- | The untagged version of 'runResourceIO''.
-runResourceIO :: (Resource `Via` LowerIO) m a -> m a
-runResourceIO = coerce
-{-# INLINE runResourceIO #-}
+makeUntagged ['runResourceIO']

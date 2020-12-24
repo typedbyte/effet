@@ -17,6 +17,10 @@
 module Control.Effect.State
   ( -- * Tagged State Effect
     State'(..)
+    -- * Convenience Functions
+  , gets'
+  , modify'
+  , modifyStrict'
     -- * Untagged State Effect
     -- | If you don't require disambiguation of multiple state effects
     -- (i.e., you only have one state effect in your monadic context),
@@ -25,15 +29,8 @@ module Control.Effect.State
   , get
   , put
   , state
-    -- * Convenience Functions
-    -- | If you don't require disambiguation of multiple state effects
-    -- (i.e., you only have one state effect in your monadic context),
-    -- it is recommended to always use the untagged functions.
-  , gets'
   , gets
-  , modify'
   , modify
-  , modifyStrict'
   , modifyStrict
     -- * Tagging and Untagging
     -- | Conversion functions between the tagged and untagged state effect,
@@ -123,22 +120,12 @@ gets' :: forall tag s m a. State' tag s m => (s -> a) -> m a
 gets' f = fmap f (get' @tag)
 {-# INLINE gets' #-}
 
--- | The untagged version of 'gets''.
-gets :: State s m => (s -> a) -> m a
-gets = gets' @G
-{-# INLINE gets #-}
-
 -- | Modifies the state, using the provided function.
 modify' :: forall tag s m. State' tag s m => (s -> s) -> m ()
 modify' f = do
   s <- get' @tag
   put' @tag (f s)
 {-# INLINE modify' #-}
-
--- | The untagged version of 'modify''.
-modify :: State s m => (s -> s) -> m ()
-modify = modify' @G
-{-# INLINE modify #-}
 
 -- | Modifies the state, using the provided function.
 -- The computation is strict in the new state.
@@ -148,7 +135,4 @@ modifyStrict' f = do
   put' @tag $! f s
 {-# INLINE modifyStrict' #-}
 
--- | The untagged version of 'modifyStrict''.
-modifyStrict :: State s m => (s -> s) -> m ()
-modifyStrict = modifyStrict' @G
-{-# INLINE modifyStrict #-}
+makeUntagged ['gets', 'modify', 'modifyStrict']

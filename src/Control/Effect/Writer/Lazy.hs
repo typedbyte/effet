@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Effect.Writer.Lazy
@@ -29,7 +30,7 @@ import Data.Tuple (swap)
 import Control.Monad.Trans.Writer.Lazy (WriterT, execWriterT, runWriterT)
 
 import Control.Effect.Writer    (Writer, Writer')
-import Control.Effect.Machinery (G, Via, runVia)
+import Control.Effect.Machinery (Via, makeUntagged, runVia)
 
 -- | Runs the writer effect and returns the final output.
 execWriter' :: forall tag w m a. Monad m
@@ -38,11 +39,6 @@ execWriter' :: forall tag w m a. Monad m
 execWriter' = execWriterT . runVia
 {-# INLINE execWriter' #-}
 
--- | The untagged version of 'execWriter''.
-execWriter :: Monad m => (Writer w `Via` WriterT w) m a -> m w
-execWriter = execWriter' @G
-{-# INLINE execWriter #-}
-
 -- | Runs the writer effect and returns both the final output and the result of the interpreted program.
 runWriter' :: forall tag w m a. Functor m
            => (Writer' tag w `Via` WriterT w) m a -- ^ The program whose writer effect should be handled.
@@ -50,7 +46,4 @@ runWriter' :: forall tag w m a. Functor m
 runWriter' = fmap swap . runWriterT . runVia
 {-# INLINE runWriter' #-}
 
--- | The untagged version of 'runWriter''.
-runWriter :: Functor m => (Writer w `Via` WriterT w) m a -> m (w, a)
-runWriter = runWriter' @G
-{-# INLINE runWriter #-}
+makeUntagged ['execWriter', 'runWriter']

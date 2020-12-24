@@ -27,7 +27,6 @@ module Control.Effect.RWS
   , runSeparatedRWS'
   , runSeparatedRWS
     -- * Tagging and Untagging
-  , Tagger
     -- | Conversion functions between the tagged and untagged RWS effect,
     -- usually used in combination with type applications, like:
     --
@@ -64,18 +63,7 @@ import Control.Effect.Machinery hiding (Tagger)
 -- @since 0.2.0.0
 class (R.Reader' tag r m, W.Writer' tag w m, S.State' tag s m) => RWS' tag r w s m | tag m -> r w s
 
-type RWS r w s = RWS' G r w s
-
-instance ( Monad (t m),
-           R.Reader' tag r (EachVia effs t m),
-           W.Writer' tag w (EachVia effs t m),
-           S.State' tag s (EachVia effs t m)
-         ) => RWS' tag r w s (EachVia (RWS' tag r w s : effs) t m)
-
-instance {-# OVERLAPPABLE #-}
-         Find (RWS' tag r w s) effs t m => RWS' tag r w s (EachVia (other : effs) t m)
-
-instance Control (RWS' tag r w s) t m => RWS' tag r w s (EachVia '[] t m)
+makeTaggedEffect ''RWS'
 
 instance (Monad m, Monoid w) => RWS' tag r w s (Lazy.RWST r w s m)
 instance (Monad m, Monoid w) => RWS' tag r w s (Strict.RWST r w s m)
@@ -134,55 +122,3 @@ runSeparatedRWS' = coerce
 runSeparatedRWS :: ('[RWS r w s, R.Reader r, W.Writer w, S.State s] `EachVia` Separation) m a -> m a
 runSeparatedRWS = coerce
 {-# INLINE runSeparatedRWS #-}
-
--- | The tagging interpreter of the RWS effect. This type implements the
--- 'RWS'' type class by tagging\/retagging\/untagging its reader, writer and state
--- components.
---
--- When interpreting the effect, you usually don\'t interact with this type directly,
--- but instead use one of its corresponding interpretation functions.
---
--- @since 0.2.0.0
-newtype Tagger tag new m a =
-  Tagger { runRWSTagger :: m a }
-    deriving (Applicative, Functor, Monad, MonadIO)
-    deriving (MonadTrans, MonadTransControl) via IdentityT
-    deriving (MonadBase b, MonadBaseControl b)
-
-instance RWS' new r w s m => RWS' tag r w s (Tagger tag new m)
-
-instance RWS' new r w s m => R.Reader' tag r (Tagger tag new m) where
-  ask' = Tagger (R.ask' @new)
-  {-# INLINE ask' #-}
-  local' f m = Tagger (R.local' @new f (runRWSTagger m))
-  {-# INLINE local' #-}
-  reader' f = Tagger (R.reader' @new f)
-  {-# INLINE reader' #-}
-
-instance RWS' new r w s m => W.Writer' tag w (Tagger tag new m) where
-  tell' w = Tagger (W.tell' @new w)
-  {-# INLINE tell' #-}
-  listen' m = Tagger (W.listen' @new (runRWSTagger m))
-  {-# INLINE listen' #-}
-  censor' f m = Tagger (W.censor' @new f (runRWSTagger m))
-  {-# INLINE censor' #-}
-
-instance RWS' new r w s m => S.State' tag s (Tagger tag new m) where
-  get' = Tagger (S.get' @new)
-  {-# INLINE get' #-}
-  put' s = Tagger (S.put' @new s)
-  {-# INLINE put' #-}
-  state' f = Tagger (S.state' @new f)
-  {-# INLINE state' #-}
-
-tagRWS' :: forall new r w s m a. ('[RWS' G r w s, R.Reader' G r, W.Writer' G w, S.State' G s] `EachVia` Tagger G new) m a -> m a
-tagRWS' = coerce
-{-# INLINE tagRWS' #-}
-
-retagRWS' :: forall tag new r w s m a. ('[RWS' tag r w s, R.Reader' tag r, W.Writer' tag w, S.State' tag s] `EachVia` Tagger tag new) m a -> m a
-retagRWS' = coerce
-{-# INLINE retagRWS' #-}
-
-untagRWS' :: forall tag r w s m a. ('[RWS' tag r w s, R.Reader' tag r, W.Writer' tag w, S.State' tag s] `EachVia` Tagger tag G) m a -> m a
-untagRWS' = coerce
-{-# INLINE untagRWS' #-}

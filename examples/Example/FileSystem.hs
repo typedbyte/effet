@@ -15,7 +15,7 @@ import Test.Hspec (Spec, it, shouldBe)
 import Control.Effect.Identity
 import Control.Effect.Machinery
 import Control.Effect.Map
-import Control.Effect.Map.Strict
+import Control.Effect.Map.Strict hiding (lookup)
 
 import Example.Logger
 import Hspec (shouldPrint)

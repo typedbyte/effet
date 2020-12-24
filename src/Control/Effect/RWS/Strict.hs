@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Effect.RWS.Strict
@@ -89,11 +90,6 @@ evalRWS' r s = fmap reorder . (\m -> RWS.runRWST m r s) . coerce
     reorder (a, _, w) = (w, a)
 {-# INLINE evalRWS' #-}
 
--- | The untagged version of 'evalRWS''.
-evalRWS :: (Functor m, Monoid w) => r -> s -> ('[RWS r w s, Reader r, Writer w, State s] `EachVia` RWST r w s) m a -> m (w, a)
-evalRWS = evalRWS' @G
-{-# INLINE evalRWS #-}
-
 -- | Runs the RWS effect and discards the result of the interpreted program.
 execRWS'
   :: forall tag r w s m a. (Functor m, Monoid w)
@@ -110,11 +106,6 @@ execRWS' r s = fmap reorder . (\m -> RWS.runRWST m r s) . coerce
   where
     reorder (_, s', w) = (w, s')
 {-# INLINE execRWS' #-}
-
--- | The untagged version of 'execRWS''.
-execRWS :: (Functor m, Monoid w) => r -> s -> ('[RWS r w s, Reader r, Writer w, State s] `EachVia` RWST r w s) m a -> m (w, s)
-execRWS = execRWS' @G
-{-# INLINE execRWS #-}
 
 -- | Runs the RWS effect and returns the final output, the final state and the result of the interpreted program.
 runRWS'
@@ -133,7 +124,4 @@ runRWS' r s = fmap reorder . (\m -> RWS.runRWST m r s) . coerce
     reorder (a, s', w) = (w, s', a)
 {-# INLINE runRWS' #-}
 
--- | The untagged version of 'runRWS''.
-runRWS :: (Functor m, Monoid w) => r -> s -> ('[RWS r w s, Reader r, Writer w, State s] `EachVia` RWST r w s) m a -> m (w, s, a)
-runRWS = runRWS' @G
-{-# INLINE runRWS #-}
+makeUntagged ['evalRWS', 'execRWS', 'runRWS']

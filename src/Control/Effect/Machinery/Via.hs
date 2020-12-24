@@ -31,6 +31,8 @@ module Control.Effect.Machinery.Via
   , Find
   , Lift
   , Control
+    -- * Convenience Functions
+  , Expand
   ) where
 
 -- base
@@ -101,15 +103,18 @@ type Transformer = SomeMonad -> Type -> Type
 
 -- | This constraint synonym indicates that an effect is handled by a specific monad
 -- transformer.
-type Handle (eff :: Effect) (t :: Transformer) m =
-  eff (t m)
+--
+-- @since 0.4.0.0
+type Handle (cxt :: [Effect]) (eff :: Effect) (others :: [Effect]) (t :: Transformer) m =
+  (eff (t m), Expand cxt (eff ': others) t m)
 
 -- | This constraint synonym indicates that an effect @eff@ is not at the head of the
 -- type level list of effects to be handled, so the effect must be found further
 -- down in the tail @effs@.
 --
--- @since 0.2.0.0
-type Find eff effs t m = (Monad (t m), eff (EachVia effs t m))
+-- @since 0.4.0.0
+type Find (cxt :: [Effect]) (eff :: Effect) (other :: Effect) (effs :: [Effect]) (t :: Transformer) m =
+  (eff (EachVia effs t m), Expand cxt (other ': effs) t m)
 
 -- | This constraint synonym indicates that a first-order effect is not handled
 -- by a specific monad transformer and must thus be delegated (\"lifted\")
@@ -121,8 +126,10 @@ type Find eff effs t m = (Monad (t m), eff (EachVia effs t m))
 -- its corresponding class methods (e.g., @m@ appears only in the result type).
 --
 -- An example of a first-order effect is the 'Control.Effect.State.State'' effect.
-type Lift (eff :: Effect) (t :: Transformer) m =
-  (eff m, Monad (t m), MonadTrans t)
+--
+-- @since 0.4.0.0
+type Lift (cxt :: [Effect]) (eff :: Effect) (t :: Transformer) m =
+  (eff m, Expand cxt '[] t m, MonadTrans t)
 
 -- | This constraint synonym indicates that a higher-order effect is not handled
 -- by a specific monad transformer and must thus be delegated (\"lifted\")
@@ -137,5 +144,16 @@ type Lift (eff :: Effect) (t :: Transformer) m =
 -- An example of a higher-order effect is the 'Control.Effect.Reader.Reader'' effect,
 -- since its class method 'Control.Effect.Reader.local'' has a parameter of
 -- type @m a@.
-type Control (eff :: Effect) (t :: Transformer) m =
-  (eff m, Monad (t m), MonadTransControl t)
+--
+-- @since 0.4.0.0
+type Control (cxt :: [Effect]) (eff :: Effect) (t :: Transformer) m =
+  (eff m, Expand cxt '[] t m, Monad (t m), MonadTransControl t)
+
+-- | Type-level helper function to apply a list of constraints (i.e., effects)
+-- to 'EachVia'. One should not call this by hand, it will be used by the generated
+-- code or called by 'Handle', 'Find', 'Lift' and 'Control'.
+--
+-- @since 0.4.0.0
+type family Expand (cxt :: [Effect]) (effs :: [Effect]) (t :: Transformer) m :: Constraint where
+  Expand '[] effs t m = ()
+  Expand (cxt ': cxts) effs t m = (cxt (EachVia effs t m), Expand cxts effs t m)

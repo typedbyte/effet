@@ -113,9 +113,7 @@ runEmbed' f = flip runReaderT (F f) . runTransformation . runVia
 {-# INLINE runEmbed' #-}
 
 -- | The untagged version of 'runEmbed''.
-runEmbed :: (forall b. n b -> t b) -> (Embed n `Via` Transformation n t) m a -> m a
-runEmbed = runEmbed' @G
-{-# INLINE runEmbed #-}
+makeUntagged ['runEmbed']
 
 -- | The finalization interpreter of the embed effect. This type implements the
 -- 'Embed' type class by declaring the integrated monad the final monad @m@
@@ -150,6 +148,4 @@ runFinal' = coerce
 -- | The untagged version of 'runFinal''.
 --
 -- @since 0.3.0.0
-runFinal :: (Embed m `Via` Finalization) m a -> m a
-runFinal = runFinal' @G
-{-# INLINE runFinal #-}
+makeUntagged ['runFinal']

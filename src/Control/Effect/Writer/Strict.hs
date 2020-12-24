@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Effect.Writer.Strict
@@ -75,11 +76,6 @@ execWriter' :: forall tag w m a. (Monad m, Monoid w)
 execWriter' = W.execWriterT . coerce
 {-# INLINE execWriter' #-}
 
--- | The untagged version of 'execWriter''.
-execWriter :: (Monad m, Monoid w) => (Writer w `Via` WriterT w) m a -> m w
-execWriter = execWriter' @G
-{-# INLINE execWriter #-}
-
 -- | Runs the writer effect and returns both the final output and the result of the interpreted program.
 runWriter' :: forall tag w m a. (Functor m, Monoid w)
            => (Writer' tag w `Via` WriterT w) m a -- ^ The program whose writer effect should be handled.
@@ -87,7 +83,4 @@ runWriter' :: forall tag w m a. (Functor m, Monoid w)
 runWriter' = fmap swap . W.runWriterT . coerce
 {-# INLINE runWriter' #-}
 
--- | The untagged version of 'runWriter''.
-runWriter :: (Functor m, Monoid w) => (Writer w `Via` WriterT w) m a -> m (w, a)
-runWriter = runWriter' @G
-{-# INLINE runWriter #-}
+makeUntagged ['execWriter', 'runWriter']

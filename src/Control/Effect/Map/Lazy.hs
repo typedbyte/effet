@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Control.Effect.Map.Lazy
@@ -81,6 +82,4 @@ runMap' = flip S.evalStateT M.empty . runLazyMap . runVia
 {-# INLINE runMap' #-}
 
 -- | The untagged version of 'runMap''.
-runMap :: Monad m => (Map k v `Via` LazyMap k v) m a -> m a
-runMap = runMap' @G
-{-# INLINE runMap #-}
+makeUntagged ['runMap']

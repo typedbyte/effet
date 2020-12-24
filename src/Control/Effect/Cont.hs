@@ -21,10 +21,10 @@ module Control.Effect.Cont
   , Cont
   , callCC
     -- * Interpretations
-  , runCont'
-  , runCont
   , evalCont'
   , evalCont
+  , runCont'
+  , runCont
     -- * Tagging and Untagging
     -- | Conversion functions between the tagged and untagged continuation effect,
     -- usually used in combination with type applications, like:
@@ -68,7 +68,7 @@ makeHandler ''Cont'
 makeFinder  ''Cont'
 makeTagger  ''Cont'
 
-instance Control (Cont' tag) t m => Cont' tag (EachVia '[] t m) where
+instance Control '[] (Cont' tag) t m => Cont' tag (EachVia '[] t m) where
   callCC' f =
     liftWith
       ( \run -> callCC' @tag $ \c -> run . f $
@@ -81,22 +81,18 @@ instance Cont' tag (C.ContT r m) where
   callCC' = C.callCC
   {-# INLINE callCC' #-}
 
--- | Runs the continuation effect with a given final continuation.
-runCont' :: forall tag r m a. (a -> m r) -> (Cont' tag `Via` C.ContT r) m a -> m r
-runCont' f = flip C.runContT f . runVia
-{-# INLINE runCont' #-}
-
--- | The untagged version of 'runCont''.
-runCont :: (a -> m r) -> (Cont `Via` C.ContT r) m a -> m r
-runCont = runCont' @G
-{-# INLINE runCont #-}
-
 -- | Runs the continuation effect with 'pure' as final continuation.
 evalCont' :: forall tag r m. Applicative m => (Cont' tag `Via` C.ContT r) m r -> m r
 evalCont' = runCont' pure
 {-# INLINE evalCont' #-}
 
+-- | Runs the continuation effect with a given final continuation.
+runCont' :: forall tag r m a. (a -> m r) -> (Cont' tag `Via` C.ContT r) m a -> m r
+runCont' f = flip C.runContT f . runVia
+{-# INLINE runCont' #-}
+
 -- | The untagged version of 'evalCont''.
-evalCont :: Applicative m => (Cont `Via` C.ContT r) m r -> m r
-evalCont = evalCont' @G
-{-# INLINE evalCont #-}
+makeUntagged ['evalCont']
+
+-- | The untagged version of 'runCont''.
+makeUntagged ['runCont']
